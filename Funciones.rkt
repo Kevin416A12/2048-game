@@ -1,8 +1,9 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-advanced-reader.ss" "lang")((modname Funciones) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+#lang racket
+(provide (all-defined-out))
 
-;El siguiente bloque de codigo corresponde a la funcion crear tablero KAN-1
+; ============
+; NUMERO NUEVO
+; ============
 
 ; Crea una fila de m columnas con un valor dado (es auxiliar a crear-matriz)
 (define (crear-fila m valor)
@@ -16,8 +17,6 @@
       '()
       (cons (crear-fila m 0) (crear-matriz (- n 1) m))))
 
-
-;lo siguiente corresponde a la funcion de numero nuevo KAN-2
 
 ; Cuenta cuántos ceros hay en una fila
 (define (contar-ceros-fila fila)
@@ -65,3 +64,159 @@
   (cond
     [(= (contar-ceros matriz) 0) matriz]
     [else (reemplazar-cero-matriz matriz (random (contar-ceros matriz)) (valor-random))]))
+
+
+; =====================
+; CREAR TABLERO INICIAL 
+; =====================
+
+(define (colocar-valor matriz valor)
+  (cond
+    [(= (contar-ceros matriz) 0) matriz]
+    [else
+     (reemplazar-cero-matriz
+      matriz
+      (random (contar-ceros matriz))
+      valor)]))
+
+(define (crear-tablero-inicial n m)
+  (colocar-valor
+   (colocar-valor (crear-matriz n m) 2)
+   2))
+
+; =================================
+; MOVER A LA IZQUIERDA SIN COMBINAR
+; =================================
+
+;cuenta cuántos elementos tiene una lista
+(define (contar-elementos lista)
+  (cond
+    [(null? lista) 0]
+    [else (+ 1 (contar-elementos (cdr lista)))]))
+
+; quita los ceros de una fila
+(define (quitar-ceros fila)
+  (cond
+    [(null? fila) '()]
+    [(= (car fila) 0)
+     (quitar-ceros (cdr fila))]
+    [else
+     (cons (car fila)
+           (quitar-ceros (cdr fila)))]))
+
+; agrega ceros al final hasta llegar al tamaño indicado
+(define (rellenar-con-ceros fila tamano)
+  (cond
+    [(= (contar-elementos fila) tamano) fila]
+    [else
+     (rellenar-con-ceros
+      (append fila '(0))
+      tamano)]))
+
+; mueve una fila a la izquierda sin combinar
+(define (mover-fila-izquierda-simple fila)
+  (rellenar-con-ceros
+   (quitar-ceros fila)
+   (contar-elementos fila)))
+
+
+; ========================
+; COMBINAR FILAS IZQUIERDA
+; ========================
+
+; ; combina una fila ya corrida a la izquierda
+(define (combinar-fila fila)
+  (cond
+    [(null? fila) '()]
+    [(null? (cdr fila)) fila]
+    [(= (car fila) (cadr fila))
+     (cons (+ (car fila) (cadr fila))
+           (combinar-fila (cddr fila)))]
+    [else
+     (cons (car fila)
+           (combinar-fila (cdr fila)))]))
+
+; movimiento completo de una fila hacia la izquierda
+(define (mover-fila-izquierda fila)
+  (rellenar-con-ceros
+   (combinar-fila (mover-fila-izquierda-simple fila))
+   (contar-elementos fila)))
+
+; ======================
+; COMBINAR FILAS DERECHA
+; ======================
+
+; invierte una lista
+(define (invertir lista)
+  (cond
+    [(null? lista) '()]
+    [else
+     (append (invertir (cdr lista))
+             (list (car lista)))]))
+
+; mueve una fila hacia la derecha
+(define (mover-fila-derecha fila)
+  (invertir
+   (mover-fila-izquierda
+    (invertir fila))))
+; toma el primer elemento de cada fila
+(define (primeros matriz)
+  (cond
+    [(null? matriz) '()]
+    [else
+     (cons (caar matriz)
+           (primeros (cdr matriz)))]))
+
+
+; =================
+; TRANSPONER MATRIS
+; =================
+; toma el resto de cada fila
+(define (restos matriz)
+  (cond
+    [(null? matriz) '()]
+    [else
+     (cons (cdar matriz)
+           (restos (cdr matriz)))]))
+
+; transpone una matriz
+(define (transponer matriz)
+  (cond
+    [(null? matriz) '()]
+    [(null? (car matriz)) '()]
+    [else
+     (cons (primeros matriz)
+           (transponer (restos matriz)))]))
+
+; ===============================
+; MOVIMIENTOS COMPLETOS DE MATRIS
+; ===============================
+; aplica una función a cada fila de la matriz
+(define (aplicar-a-matriz matriz f)
+  (cond
+    [(null? matriz) '()]
+    [else
+     (cons (f (car matriz))
+           (aplicar-a-matriz (cdr matriz) f))]))
+
+; mueve todo el tablero hacia la izquierda
+(define (mover-izquierda matriz)
+  (aplicar-a-matriz matriz mover-fila-izquierda))
+
+; mueve todo el tablero hacia la derecha
+(define (mover-derecha matriz)
+  (aplicar-a-matriz matriz mover-fila-derecha))
+
+; mueve todo el tablero hacia arriba
+(define (mover-arriba matriz)
+  (transponer
+   (mover-izquierda
+    (transponer matriz))))
+
+; mueve todo el tablero hacia abajo
+(define (mover-abajo matriz)
+  (transponer
+   (mover-derecha
+    (transponer matriz))))
+
+
