@@ -219,4 +219,19 @@
    (mover-derecha
     (transponer matriz))))
 
+; =================
+; COMPARAR TABLEROS
+; =================
+(define (tableros-iguales? t1 t2)
+  (equal? t1 t2))
 
+; ====================
+; AGREGAR NUEVO NUMERO 
+; ====================
+(define (aplicar-movimiento tablero movimiento)
+  (cond
+    [(tableros-iguales? tablero (movimiento tablero))
+     tablero]
+
+    [else
+     (colocar-valor-random (movimiento tablero))]))
