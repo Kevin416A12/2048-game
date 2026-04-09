@@ -236,10 +236,6 @@
     [else
      (colocar-valor-random (movimiento tablero))]))
 
-; ================
-; CALCULAR PUNTAJE 
-; ================
-
 ; =====================
 ; CALCULO DE PUNTAJE
 ; =====================
@@ -395,5 +391,7 @@
   (and
    (tablero-lleno? tablero)
    (not (hay-movimientos? tablero))))
+
+
 
 

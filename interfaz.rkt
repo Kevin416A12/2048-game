@@ -7,11 +7,12 @@
 ; ESTADOS DEL PROGRAMA
 ; ===============================
 
-; El mundo será un símbolo:
-; 'inicio   -> pantalla inicial
-; 'jugando  -> tablero en juego
-; 'salir    -> cerrar
-; 'puntaje  -> puntaje obtenido
+; El mundo será una lista:
+; (list 'inicio tamano)
+; (list 'jugando tablero tamano puntaje)
+; (list 'victoria tablero tamano puntaje)
+; (list 'game-over tablero tamano puntaje)
+; (list 'salir)
 
 ; ===============================
 ; DIBUJO DE LA PANTALLA DE INICIO
