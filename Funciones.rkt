@@ -362,4 +362,38 @@
     [else
      (tablero-gano? (cdr tablero))]))
 
+; =====================
+; GAME OVER
+; =====================
+
+(define (tablero-lleno? tablero)
+  (= (contar-ceros tablero) 0))
+
+(define (hay-movimientos? tablero)
+  (or
+   (not
+    (tableros-iguales?
+     tablero
+     (mover-izquierda tablero)))
+
+   (not
+    (tableros-iguales?
+     tablero
+     (mover-derecha tablero)))
+
+   (not
+    (tableros-iguales?
+     tablero
+     (mover-arriba tablero)))
+
+   (not
+    (tableros-iguales?
+     tablero
+     (mover-abajo tablero)))))
+
+(define (tablero-game-over? tablero)
+  (and
+   (tablero-lleno? tablero)
+   (not (hay-movimientos? tablero))))
+
 
