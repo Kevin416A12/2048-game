@@ -11,6 +11,7 @@
 ; 'inicio   -> pantalla inicial
 ; 'jugando  -> tablero en juego
 ; 'salir    -> cerrar
+; 'puntaje  -> puntaje obtenido
 
 ; ===============================
 ; DIBUJO DE LA PANTALLA DE INICIO
@@ -144,6 +145,19 @@
   (quotient AREA-TABLERO (estado-tamano mundo)))
 
 ; =================
+; DIBUJO DEL PUNTAJE
+; =================
+
+(define (dibujar-puntaje puntaje)
+  (text
+   (string-append
+    "Puntaje: "
+    (number->string puntaje))
+   24
+   "black"))
+
+
+; =================
 ; LECTURA DE ESTADO
 ; =================
 
@@ -154,13 +168,25 @@
   (cond
     [(symbol=? (estado-modo mundo) 'inicio)
      (cadr mundo)]
-    [(symbol=? (estado-modo mundo) 'jugando)
+    [else
      (caddr mundo)]))
 
 (define (estado-tablero mundo)
-  (if (symbol=? (estado-modo mundo) 'jugando)
-      (cadr mundo)
-      '()))
+  (cond
+    [(or (symbol=? (estado-modo mundo) 'jugando)
+         (symbol=? (estado-modo mundo) 'victoria)
+         (symbol=? (estado-modo mundo) 'game-over))
+     (cadr mundo)]
+    [else
+     '()]))
+
+(define (estado-puntaje mundo)
+  (cond
+    [(symbol=? (estado-modo mundo) 'inicio)
+     0]
+
+    [else
+     (cadddr mundo)]))
 ; ===============================
 ; MANEJO DE TECLAS
 ; ===============================
@@ -172,10 +198,11 @@
     [(and (symbol=? (estado-modo mundo) 'inicio)
           (key=? tecla "\r"))
      (list 'jugando
-           (crear-tablero-inicial
-            (estado-tamano mundo)
-            (estado-tamano mundo))
-           (estado-tamano mundo))]
+      (crear-tablero-inicial
+       (estado-tamano mundo)
+       (estado-tamano mundo))
+      (estado-tamano mundo)
+      0)]
 
     ; cambiar tamaño en menú
     [(and (symbol=? (estado-modo mundo) 'inicio)
@@ -194,39 +221,117 @@
 
     ; mover izquierda
     [(and (symbol=? (estado-modo mundo) 'jugando)
-          (key=? tecla "left"))
-     (list 'jugando
-           (aplicar-movimiento
-            (estado-tablero mundo)
-            mover-izquierda)
-           (estado-tamano mundo))]
+      (key=? tecla "left"))
+
+ (local [(define resultado
+           (mover-izquierda-con-puntaje
+            (estado-tablero mundo)))
+
+         (define nuevo-tablero
+           (car resultado))
+
+         (define puntaje-ganado
+           (cadr resultado))
+
+         (define tablero-final
+           (if (equal? nuevo-tablero
+                       (estado-tablero mundo))
+               nuevo-tablero
+               (colocar-valor-random nuevo-tablero)))
+
+         (define puntaje-final
+           (+ (estado-puntaje mundo)
+              puntaje-ganado))]
+
+   (list 'jugando
+         tablero-final
+         (estado-tamano mundo)
+         puntaje-final))]
 
     ; mover derecha
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "right"))
+
+     (local [(define resultado
+           (mover-derecha-con-puntaje
+            (estado-tablero mundo)))
+
+         (define nuevo-tablero
+           (car resultado))
+
+         (define puntaje-ganado
+           (cadr resultado))
+
+         (define tablero-final
+           (if (equal? nuevo-tablero
+                       (estado-tablero mundo))
+               nuevo-tablero
+               (colocar-valor-random nuevo-tablero)))
+
+         (define puntaje-final
+           (+ (estado-puntaje mundo)
+              puntaje-ganado))]
+       
      (list 'jugando
-           (aplicar-movimiento
-            (estado-tablero mundo)
-            mover-derecha)
-           (estado-tamano mundo))]
+         tablero-final
+         (estado-tamano mundo)
+         puntaje-final))]
 
     ; mover arriba
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "up"))
+
+     (local [(define resultado
+           (mover-arriba-con-puntaje
+            (estado-tablero mundo)))
+
+         (define nuevo-tablero
+           (car resultado))
+
+         (define puntaje-ganado
+           (cadr resultado))
+
+         (define tablero-final
+           (if (equal? nuevo-tablero
+                       (estado-tablero mundo))
+               nuevo-tablero
+               (colocar-valor-random nuevo-tablero)))
+
+         (define puntaje-final
+           (+ (estado-puntaje mundo)
+              puntaje-ganado))]
+       
      (list 'jugando
-           (aplicar-movimiento
-            (estado-tablero mundo)
-            mover-arriba)
-           (estado-tamano mundo))]
+         tablero-final
+         (estado-tamano mundo)
+         puntaje-final))]
 
     ; mover abajo
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "down"))
+     (local [(define resultado
+           (mover-abajo-con-puntaje
+            (estado-tablero mundo)))
+
+         (define nuevo-tablero
+           (car resultado))
+
+         (define puntaje-ganado
+           (cadr resultado))
+
+         (define tablero-final
+           (if (equal? nuevo-tablero
+                       (estado-tablero mundo))
+               nuevo-tablero
+               (colocar-valor-random nuevo-tablero)))
+
+         (define puntaje-final
+           (+ (estado-puntaje mundo)
+              puntaje-ganado))]
      (list 'jugando
-           (aplicar-movimiento
-            (estado-tablero mundo)
-            mover-abajo)
-           (estado-tamano mundo))]
+         tablero-final
+         (estado-tamano mundo)
+         puntaje-final))]
 
     [else mundo]))
 ; ===============================
@@ -242,8 +347,11 @@
      (place-image
       (dibujar-tablero (estado-tablero mundo)
                        (tam-celda mundo))
-      300 250
-      FONDO)]
+      300 280
+      (place-image
+       (dibujar-puntaje (estado-puntaje mundo))
+       300 50
+      FONDO))]
 
     [else
      (place-image

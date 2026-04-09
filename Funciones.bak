@@ -159,7 +159,7 @@
   (invertir
    (mover-fila-izquierda
     (invertir fila))))
-; toma el primer elemento de cada fila, o sea la columna.
+; toma el primer elemento de cada fila
 (define (primeros matriz)
   (cond
     [(null? matriz) '()]
@@ -191,7 +191,7 @@
 ; ===============================
 ; MOVIMIENTOS COMPLETOS DE MATRIS
 ; ===============================
-; aplica una función a cada fila de la matriz          ESTO ES MUY PRO
+; aplica una función a cada fila de la matriz
 (define (aplicar-a-matriz matriz f)
   (cond
     [(null? matriz) '()]
@@ -235,110 +235,3 @@
 
     [else
      (colocar-valor-random (movimiento tablero))]))
-
-; ================
-; CALCULAR PUNTAJE 
-; ================
-
-; =====================
-; CALCULO DE PUNTAJE
-; =====================
-
-; Lo mismo pero para el puntaje
-
-(define (combinar-fila-con-puntaje fila)
-  (cond
-    [(null? fila)
-     (cons '() 0)]
-
-    [(null? (cdr fila))
-     (cons fila 0)]
-
-    [(= (car fila) (cadr fila))
-     (cons
-      (cons (+ (car fila) (cadr fila))
-            (car (combinar-fila-con-puntaje (cddr fila))))
-      (+ (+ (car fila) (cadr fila))
-         (cdr (combinar-fila-con-puntaje (cddr fila)))))]
-
-    [else
-     (cons
-      (cons (car fila)
-            (car (combinar-fila-con-puntaje (cdr fila))))
-      (cdr (combinar-fila-con-puntaje (cdr fila))))]))
-
-; Devuelve:
-; (cons fila-final puntaje)
-(define (mover-fila-izquierda-con-puntaje fila)
-  (list
-   (rellenar-con-ceros
-    (car (combinar-fila-con-puntaje
-          (mover-fila-izquierda-simple fila)))
-    (contar-elementos fila))
-
-   (cdr (combinar-fila-con-puntaje
-         (mover-fila-izquierda-simple fila)))))
-
-; Devuelve:
-; (cons tablero puntaje)
-(define (mover-izquierda-con-puntaje matriz)
-  (cond
-    [(null? matriz)
-     (list '() 0)]
-
-    [else
-     (list
-      (cons
-       (car
-        (mover-fila-izquierda-con-puntaje
-         (car matriz)))
-
-       (car
-        (mover-izquierda-con-puntaje
-         (cdr matriz))))
-
-      (+
-       (cadr
-        (mover-fila-izquierda-con-puntaje
-         (car matriz)))
-
-       (cadr
-        (mover-izquierda-con-puntaje
-         (cdr matriz)))))]))
-
-
-(define (mover-derecha-con-puntaje matriz)
-  (list
-   (aplicar-a-matriz
-    (car
-     (mover-izquierda-con-puntaje
-      (aplicar-a-matriz matriz invertir)))
-    invertir)
-
-   (cadr
-    (mover-izquierda-con-puntaje
-     (aplicar-a-matriz matriz invertir)))))
-
-(define (mover-arriba-con-puntaje matriz)
-  (list
-   (transponer
-    (car
-     (mover-izquierda-con-puntaje
-      (transponer matriz))))
-
-   (cadr
-    (mover-izquierda-con-puntaje
-     (transponer matriz)))))
-
-(define (mover-abajo-con-puntaje matriz)
-  (list
-   (transponer
-    (car
-     (mover-derecha-con-puntaje
-      (transponer matriz))))
-
-   (cadr
-    (mover-derecha-con-puntaje
-     (transponer matriz)))))
-
-
