@@ -341,4 +341,25 @@
     (mover-derecha-con-puntaje
      (transponer matriz)))))
 
+; =====================
+; VICTORIA
+; =====================
+
+(define (fila-tiene-2048? fila)
+  (cond
+    [(null? fila) #f]
+    [(= (car fila) 2048) #t]
+    [else
+     (fila-tiene-2048? (cdr fila))]))
+
+(define (tablero-gano? tablero)
+  (cond
+    [(null? tablero) #f]
+
+    [(fila-tiene-2048? (car tablero))
+     #t]
+
+    [else
+     (tablero-gano? (cdr tablero))]))
+
 
