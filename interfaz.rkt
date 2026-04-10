@@ -67,6 +67,23 @@
 
 (define INSTRUCCION-SALIR
   (text "Presione ESC para salir" 18 "gray"))
+(define TEXTO-VICTORIA
+  (text "¡Ganaste!" 40 "darkgreen"))
+
+(define TEXTO-2048
+  (text "Llegaste a 2048" 22 "black"))
+
+(define TEXTO-GAME-OVER
+  (text "GAME OVER" 40 "red"))
+
+(define TEXTO-SIN-MOVIMIENTOS
+  (text "Ya no hay movimientos disponibles" 20 "black"))
+
+(define TEXTO-REINICIAR
+  (text "Presione R para volver al menu" 18 "black"))
+
+(define TEXTO-SALIR-VENTANA
+  (text "Presione ESC para salir" 18 "black"))
 
 ; ===============================
 ; CAMBIAR TAMANO
@@ -157,7 +174,40 @@
    24
    "black"))
 
+; =================
+; VENTANA VICTORIA
+; =================
+(define (dibujar-ventana-victoria mundo)
+  (place-image
+   TEXTO-SALIR-VENTANA 300 330
+   (place-image
+    TEXTO-REINICIAR 300 295
+    (place-image
+     TEXTO-2048 300 225
+     (place-image
+      TEXTO-VICTORIA 300 175
+      (place-image
+       (rectangle 430 230 "solid" (make-color 255 255 255 235))
+       300 230
+       (dibujar-juego-base mundo)))))))
 
+
+; ====================
+; VENTANA DE GAME OVER
+; ====================
+(define (dibujar-ventana-game-over mundo)
+  (place-image
+   TEXTO-SALIR-VENTANA 300 330
+   (place-image
+    TEXTO-REINICIAR 300 295
+    (place-image
+     TEXTO-SIN-MOVIMIENTOS 300 225
+     (place-image
+      TEXTO-GAME-OVER 300 175
+      (place-image
+       (rectangle 470 230 "solid" (make-color 255 255 255 235))
+       300 230
+       (dibujar-juego-base mundo)))))))
 ; =================
 ; LECTURA DE ESTADO
 ; =================
@@ -188,6 +238,46 @@
 
     [else
      (cadddr mundo)]))
+
+
+(define (aplicar-jugada mundo movimiento-con-puntaje)
+  (local [(define resultado
+            (movimiento-con-puntaje
+             (estado-tablero mundo)))
+
+          (define nuevo-tablero
+            (car resultado))
+
+          (define puntaje-ganado
+            (cadr resultado))
+
+          (define tablero-final
+            (if (equal? nuevo-tablero
+                        (estado-tablero mundo))
+                nuevo-tablero
+                (colocar-valor-random nuevo-tablero)))
+
+          (define puntaje-final
+            (+ (estado-puntaje mundo)
+               puntaje-ganado))]
+    (cond
+      [(tablero-gano? tablero-final)
+       (list 'victoria
+             tablero-final
+             (estado-tamano mundo)
+             puntaje-final)]
+
+      [(tablero-game-over? tablero-final)
+       (list 'game-over
+             tablero-final
+             (estado-tamano mundo)
+             puntaje-final)]
+
+      [else
+       (list 'jugando
+             tablero-final
+             (estado-tamano mundo)
+             puntaje-final)])))
 ; ===============================
 ; MANEJO DE TECLAS
 ; ===============================
@@ -199,11 +289,11 @@
     [(and (symbol=? (estado-modo mundo) 'inicio)
           (key=? tecla "\r"))
      (list 'jugando
-      (crear-tablero-inicial
-       (estado-tamano mundo)
-       (estado-tamano mundo))
-      (estado-tamano mundo)
-      0)]
+           (crear-tablero-inicial
+            (estado-tamano mundo)
+            (estado-tamano mundo))
+           (estado-tamano mundo)
+           0)]
 
     ; cambiar tamaño en menú
     [(and (symbol=? (estado-modo mundo) 'inicio)
@@ -222,137 +312,65 @@
 
     ; mover izquierda
     [(and (symbol=? (estado-modo mundo) 'jugando)
-      (key=? tecla "left"))
-
- (local [(define resultado
-           (mover-izquierda-con-puntaje
-            (estado-tablero mundo)))
-
-         (define nuevo-tablero
-           (car resultado))
-
-         (define puntaje-ganado
-           (cadr resultado))
-
-         (define tablero-final
-           (if (equal? nuevo-tablero
-                       (estado-tablero mundo))
-               nuevo-tablero
-               (colocar-valor-random nuevo-tablero)))
-
-         (define puntaje-final
-           (+ (estado-puntaje mundo)
-              puntaje-ganado))]
-
-   (list 'jugando
-         tablero-final
-         (estado-tamano mundo)
-         puntaje-final))]
+          (key=? tecla "left"))
+     (aplicar-jugada mundo mover-izquierda-con-puntaje)]
 
     ; mover derecha
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "right"))
-
-     (local [(define resultado
-           (mover-derecha-con-puntaje
-            (estado-tablero mundo)))
-
-         (define nuevo-tablero
-           (car resultado))
-
-         (define puntaje-ganado
-           (cadr resultado))
-
-         (define tablero-final
-           (if (equal? nuevo-tablero
-                       (estado-tablero mundo))
-               nuevo-tablero
-               (colocar-valor-random nuevo-tablero)))
-
-         (define puntaje-final
-           (+ (estado-puntaje mundo)
-              puntaje-ganado))]
-       
-     (list 'jugando
-         tablero-final
-         (estado-tamano mundo)
-         puntaje-final))]
+     (aplicar-jugada mundo mover-derecha-con-puntaje)]
 
     ; mover arriba
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "up"))
-
-     (local [(define resultado
-           (mover-arriba-con-puntaje
-            (estado-tablero mundo)))
-
-         (define nuevo-tablero
-           (car resultado))
-
-         (define puntaje-ganado
-           (cadr resultado))
-
-         (define tablero-final
-           (if (equal? nuevo-tablero
-                       (estado-tablero mundo))
-               nuevo-tablero
-               (colocar-valor-random nuevo-tablero)))
-
-         (define puntaje-final
-           (+ (estado-puntaje mundo)
-              puntaje-ganado))]
-       
-     (list 'jugando
-         tablero-final
-         (estado-tamano mundo)
-         puntaje-final))]
+     (aplicar-jugada mundo mover-arriba-con-puntaje)]
 
     ; mover abajo
     [(and (symbol=? (estado-modo mundo) 'jugando)
           (key=? tecla "down"))
-     (local [(define resultado
-           (mover-abajo-con-puntaje
-            (estado-tablero mundo)))
+     (aplicar-jugada mundo mover-abajo-con-puntaje)]
 
-         (define nuevo-tablero
-           (car resultado))
+    ; volver al menú desde victoria
+    [(and (symbol=? (estado-modo mundo) 'victoria)
+          (key=? tecla "r"))
+     (list 'inicio 4)]
 
-         (define puntaje-ganado
-           (cadr resultado))
-
-         (define tablero-final
-           (if (equal? nuevo-tablero
-                       (estado-tablero mundo))
-               nuevo-tablero
-               (colocar-valor-random nuevo-tablero)))
-
-         (define puntaje-final
-           (+ (estado-puntaje mundo)
-              puntaje-ganado))]
-     (list 'jugando
-         tablero-final
-         (estado-tamano mundo)
-         puntaje-final))]
+    ; volver al menú desde game over
+    [(and (symbol=? (estado-modo mundo) 'game-over)
+          (key=? tecla "r"))
+     (list 'inicio 4)]
 
     [else mundo]))
+
+
+
+
+
+(define (dibujar-juego-base mundo)
+  (place-image
+   (dibujar-tablero (estado-tablero mundo)
+                    (tam-celda mundo))
+   300 280
+   (place-image
+    (dibujar-puntaje (estado-puntaje mundo))
+    300 50
+    FONDO)))
 ; ===============================
 ; DIBUJO GENERAL
 ; ===============================
-
 (define (dibujar mundo)
   (cond
     [(symbol=? (estado-modo mundo) 'inicio)
      (dibujar-inicio mundo)]
 
     [(symbol=? (estado-modo mundo) 'jugando)
-     (place-image
-      (dibujar-tablero (estado-tablero mundo)
-                       (tam-celda mundo))
-      300 280
-      (place-image
-       (dibujar-puntaje (estado-puntaje mundo))
-       300 50
-      FONDO))]
+     (dibujar-juego-base mundo)]
+
+    [(symbol=? (estado-modo mundo) 'victoria)
+     (dibujar-ventana-victoria mundo)]
+
+    [(symbol=? (estado-modo mundo) 'game-over)
+     (dibujar-ventana-game-over mundo)]
 
     [else
      (place-image
@@ -373,6 +391,7 @@
 (big-bang (list 'inicio 4)
   [to-draw dibujar]
   [on-key manejar-teclado]
-  [stop-when terminar?])
+  [stop-when terminar?]
+  [close-on-stop #true])
 
 
